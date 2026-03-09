@@ -11,23 +11,36 @@ from dataset import BinarySpeechCommands
 
 
 def main():
-    train_loader, test_loader, val_loader = get_dataset_loaders(num_workers=1)
+    train_loader, test_loader, val_loader = get_dataset_loaders(num_workers=5)
+    epochs = 20
 
-    params = [{"n_mels": 80, "lr": 1e-3, "groups": 1, "epochs": 2}]
+    params = [
+        {"n_mels": 20, "lr": 1e-3, "groups": 1, "epochs": epochs},
+        {"n_mels": 40, "lr": 1e-3, "groups": 1, "epochs": epochs},
+        {"n_mels": 80, "lr": 1e-3, "groups": 1, "epochs": epochs},
+        {"n_mels": 40, "lr": 1e-3, "groups": 2, "epochs": epochs},
+        {"n_mels": 40, "lr": 1e-3, "groups": 4, "epochs": epochs},
+        {"n_mels": 40, "lr": 1e-3, "groups": 8, "epochs": epochs},
+    ]
     for model_params in params:
         trainer, model = get_train_instances(**model_params)
-        trainer.fit(model, test_loader, val_loader)  # TODO: replace with train_loader
-        trainer.test(model, test_loader)
+        trainer.fit(model, train_loader, test_loader)
+        trainer.test(model, val_loader)
 
 
 def get_dataset_loaders(batch_size: int = 32, num_workers: int = 5):
-    # train_dataset = BinarySpeechCommands(subset="train")
+    train_dataset = BinarySpeechCommands(subset="train")
     val_dataset = BinarySpeechCommands(subset="valid")
     test_dataset = BinarySpeechCommands(subset="test")
     print("Load datasets!")
-    # train_loader = DataLoader(
-    #     train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=num_workers
-    # )
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=collate_fn,
+        num_workers=num_workers,
+        persistent_workers=True,
+    )
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
@@ -45,7 +58,7 @@ def get_dataset_loaders(batch_size: int = 32, num_workers: int = 5):
         persistent_workers=True,
     )
     print("Create loaders!")
-    return None, test_loader, val_loader
+    return train_loader, test_loader, val_loader
 
 
 def get_train_instances(

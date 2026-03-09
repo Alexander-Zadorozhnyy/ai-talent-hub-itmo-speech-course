@@ -35,7 +35,7 @@ class SampleCNNModel(nn.Module):
             nn.MaxPool1d(kernel_size=2),
             nn.Conv1d(
                 in_channels=self.base_channel * 2,
-                out_channels=self.base_channel * 2,
+                out_channels=self.base_channel * 4,
                 kernel_size=5,
                 padding=1,
                 groups=groups,
@@ -45,7 +45,7 @@ class SampleCNNModel(nn.Module):
         )
         self.pool = nn.AdaptiveAvgPool1d(1)
         self.classifier = nn.Sequential(
-            nn.Flatten(), nn.Linear(self.base_channel * 2, n_classes)
+            nn.Flatten(), nn.Linear(self.base_channel * 4, n_classes)
         )
 
     def forward(self, x):
