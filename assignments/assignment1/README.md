@@ -60,7 +60,7 @@ Train a simple CNN model (no more than 100K parameters) with `LogMelFilterBanks`
 
 
 4. Experiment with **`groups`** parameter of Conv1d layer:
-    ![Group convolution](group_convolution.png)
+    ![Group convolution](imgs/group_convolution.png)
     - Set this parameter to different values (e.g. one of `{2, 4, 8, 16}`) and train the model (while tracking all the metrics)
     - Attach a graph with dependency of **epoch training time** versus **groups** parameter, as well as **number of model parameters** and **FLOPs** versus **groups** and other
     - Dump to report all your graphs and conclusions
