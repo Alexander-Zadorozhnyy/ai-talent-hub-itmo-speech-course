@@ -14,11 +14,14 @@ Implement a PyTorch layer (inherit a class from `torch.nn.Module`) for extractio
         - For an arbitrary audiofile of 16 kHz sampling frequency, plot the Log MelFilterbanks output versus native `torchaudio.transforms.MelSpectrogram` implementation and attach plots to the report
         - Don't forget that natural `torchaudio.transforms.MelSpectrogram` doesn't apply logarithm
         - Audio file can be loaded using the snippet below
+
         ```python3
         import torchaudio
         signal, sr = torchaudio.load(<wav_path>)
         ```
+
         - Your implementation will be checked via the following snippet:
+
         ```python3
         melspec = torchaudio.transforms.MelSpectrogram(
             hop_length=160,
@@ -29,18 +32,17 @@ Implement a PyTorch layer (inherit a class from `torch.nn.Module`) for extractio
         assert torch.log(melspec + 1e-6).shape == logmelbanks.shape
         assert torch.allclose(torch.log(melspec + 1e-6), logmelbanks)
         ```
+
     - Hints:
         - Be careful with `Optional` parameters initialization
         - Use [resources below](#resources) and lecture slides
         - Such simple operators as `torch.abs()`, `torch.log()` and so on should be sufficient to complete this exercise
 
-
 ---
 
 Train a simple CNN model (no more than 100K parameters) with `LogMelFilterBanks` features for a binary classification problem with [**PyTorch**](https://pytorch.org/) on [Google Speech Commands](https://arxiv.org/abs/1804.03209) data. **[10 pts]**
 
-
-2. Set-up training pipeline:
+1. Set-up training pipeline:
     - Use `from torchaudio.datasets import SPEECHCOMMANDS` dataset
     - Convert multi-classification problem into a **binary classification** problem by utilization of two `**"YES"**` and `**"NO"**` target classes only
     - Use provided by default training/validation/testing splits of data
@@ -50,29 +52,27 @@ Train a simple CNN model (no more than 100K parameters) with `LogMelFilterBanks`
     - Implement model testing on the testing subset with [accuracy](https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall) as a metric
     - Make sure you implement methods that can calculate **number of model parameters** and **FLOPs** (for [FLOPs](https://en.wikipedia.org/wiki/Floating_point_operations_per_second) calculation external library can be imported)
 
-
-3. Train a model and experiment with a number of filterbanks in `LogMelFilterBanks` layer:
+2. Train a model and experiment with a number of filterbanks in `LogMelFilterBanks` layer:
     - Try varying this number (e.g. `n_mels = X  # X from [20, 40, 80]`)
     - Dump to report comparisons and rest of your conclusions:
         - e.g. you can plot **train loss** of different model runs in one graph
         - you can plot **n_mels** vs **testing accuracy** and so on
     - Choose any of trained models as a baseline for the next stage task
 
-
-4. Experiment with **`groups`** parameter of Conv1d layer:
-    ![Group convolution](group_convolution.png)
+3. Experiment with **`groups`** parameter of Conv1d layer:
+    ![Group convolution](imgs/group_convolution.png)
     - Set this parameter to different values (e.g. one of `{2, 4, 8, 16}`) and train the model (while tracking all the metrics)
     - Attach a graph with dependency of **epoch training time** versus **groups** parameter, as well as **number of model parameters** and **FLOPs** versus **groups** and other
     - Dump to report all your graphs and conclusions
 
+---
+
+1. Submit assignment via Google Classroom as a link to a public GitHub repository with your code and a PDF report summarizing all your conclusions and plots
 
 ---
 
-4. Submit assignment via Google Classroom as a link to a public GitHub repository with your code and a PDF report summarizing all your conclusions and plots
+### Resources
 
----
-
-### Resources:
 - [PyTorch audio features tutorial](https://pytorch.org/audio/main/tutorials/audio_feature_extractions_tutorial.html#mel-filter-bank)
 - [Mel Spectrogram](https://pytorch.org/audio/main/generated/torchaudio.transforms.MelSpectrogram.html#melspectrogram)
 - [Mel Scale](https://pytorch.org/audio/main/_modules/torchaudio/functional/functional.html#melscale_fbanks)
