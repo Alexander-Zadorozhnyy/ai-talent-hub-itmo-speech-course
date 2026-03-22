@@ -13,11 +13,11 @@ SAMPLE_RATE = 16000
 
 
 def prepare_dataset(dataset_path: str) -> Tuple[List[dict], dict]:
-    print(f"Loading dataset: {dataset_path}")
+    print(f"Preparing dataset: {dataset_path}")
 
     info_path = os.path.join(dataset_path, "manifest.csv")
     if not os.path.exists(info_path):
-        raise FileNotFoundError(f"Manifest not found: {info_path}")
+        raise FileNotFoundError(f"Manifest did not found: {info_path}")
 
     labels = {}
     dataset = []
@@ -25,7 +25,7 @@ def prepare_dataset(dataset_path: str) -> Tuple[List[dict], dict]:
     # Load dataset
     df = pd.read_csv(info_path)
     for idx, row in tqdm(df.iterrows()):
-        # Assuming the path in manifest is relative to the working directory (assignment2)
+        # Assume the path in manifest is relative to the working directory
         audio_path = row["path"]
         label = str(row["text"]).lower().strip()
 
