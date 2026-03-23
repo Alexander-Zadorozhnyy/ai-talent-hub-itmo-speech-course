@@ -1,6 +1,8 @@
+from datetime import datetime
 import os
 import json
 from typing import List, Optional, Tuple
+import numpy as np
 import pandas as pd
 import torch
 import jiwer
@@ -62,6 +64,7 @@ def run_model_inference(
         print(f"Running evaluation for {method=}")
         tmp_result = {}
         valid_labels, valid_preds = [], []
+        inference_times = []
 
         for row in tqdm(dataset):
             id = row["id"]
@@ -69,11 +72,14 @@ def run_model_inference(
             label = row["label"]
 
             try:
+                start_time = datetime.utcnow()
                 prediction = decoder.decode(audio_input, method=method)
+                end_time = datetime.utcnow()
                 tmp_result[id] = prediction
 
                 valid_labels.append(label)
                 valid_preds.append(prediction)
+                inference_times.append((end_time - start_time).total_seconds())
             except NotImplementedError:
                 tmp_result[id] = "[ERROR] NOT_IMPLEMENTED"
             except Exception as e:
@@ -86,7 +92,13 @@ def run_model_inference(
             wer = jiwer.wer(valid_labels, valid_preds)
             cer = jiwer.cer(valid_labels, valid_preds)
 
-        results[method] = dict(predictions=tmp_result, metrics={"wer": wer, "cer": cer})
+        avg_inference_time = np.mean(inference_times) if len(inference_times) else None
+
+        results[method] = dict(
+            predictions=tmp_result,
+            metrics={"wer": wer, "cer": cer},
+            avg_inference_time=avg_inference_time,
+        )
         print(
             f"Method: {method}. WER: {round(wer, 2) if wer is not None else None} and CER: {round(cer, 2) if cer is not None else None}"
         )
@@ -173,8 +185,12 @@ def run_evaluation(
 
 if __name__ == "__main__":
     run_evaluation(
-        dataset_path="./data/librispeech_test_other",
-        json_save_path="./results/greedy_temperature_comparison.json",
-        methods=["greedy"],
-        temperatures=[0.5, 0.8, 1.0, 1.2, 1.5, 2.0],
+        dataset_path="./data/earnings22_test",
+        json_save_path="./results/earning_test_shallow_fusion_temperature.json",
+        methods=["beam_lm"],
+        temperatures=[0.5, 1.0, 1.5, 2.0],
+        beam_width_list=None,
+        lm_model_path="./lm/3-gram.pruned.1e-7.arpa",
+        alphas=[0.05],
+        betas=[0.5],
     )
