@@ -185,12 +185,12 @@ def run_evaluation(
 
 if __name__ == "__main__":
     run_evaluation(
-        dataset_path="./data/earnings22_test",
-        json_save_path="./results/earning_test_shallow_fusion_temperature.json",
+        dataset_path="./data/librispeech_test_other",
+        json_save_path="./results/extend_fin_model_librispeech_beam_lm.json",
         methods=["beam_lm"],
-        temperatures=[0.5, 1.0, 1.5, 2.0],
+        temperatures=[1],
         beam_width_list=None,
-        lm_model_path="./lm/3-gram.pruned.1e-7.arpa",
+        lm_model_path="./lm/financial-3gram.arpa",
         alphas=[0.05],
         betas=[0.5],
     )
