@@ -1,0 +1,6 @@
+pytest
+torch
+torchaudio
+pytorch-lightning
+thop
+tqdm
