@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 assignments/assignment1/data/*
+group-projects/gp1/data/*
 *__pycache__*
 *.py[cod]
 *$py.class
