@@ -1,0 +1,4 @@
+from src.normalizers.digit_char_normalizer import DigitCharNormalizer
+from src.normalizers.unspittable_normalizer import UnspittableNormalizer
+from src.normalizers.word_normalizer import RussianWordNormalizer
+from src.normalizers.alphabet_normalizer import RussianAlphabetWordNormalizer
