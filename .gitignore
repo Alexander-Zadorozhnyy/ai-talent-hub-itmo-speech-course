@@ -134,3 +134,7 @@ dmypy.json
 
 # macOS
 .DS_Store
+
+group-projects/gp1/logs/
+group-projects/gp1/data/
+group-projects/gp1/lightning_logs/

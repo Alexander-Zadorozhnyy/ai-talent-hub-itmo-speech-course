@@ -20,6 +20,11 @@ class ASRDataset(torch.utils.data.Dataset):
         n_fft: int = 256,
         hop_length: int = 160,
         n_mels: int = 80,
+        spec_augment: bool = False,
+        n_freq_masks: int = 2, 
+        n_time_masks: int = 2, 
+        freq_mask_param: int = 15,
+        time_mask_param: int = 35, 
         device: torch.device = torch.device("cpu"),
     ):
         self.normalizer = normalizer
@@ -33,6 +38,13 @@ class ASRDataset(torch.utils.data.Dataset):
             sample_rate=sample_rate, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels
         )
 
+        self.spec_augment = spec_augment 
+        self.n_freq_masks = n_freq_masks
+        self.n_time_masks = n_time_masks 
+        self.freq_mask = torchaudio.transforms.FrequencyMasking(freq_mask_param=freq_mask_param)
+        self.time_mask = torchaudio.transforms.TimeMasking(time_mask_param=time_mask_param)
+
+
         self.df = pd.read_csv(csv_path)
 
         self.audio_paths = self.df["filename"].tolist()
@@ -42,8 +54,9 @@ class ASRDataset(torch.utils.data.Dataset):
         ]
 
         self.labels = self.df["transcription"].tolist()
+        self.spk_ids = self.df["spk_id"].tolist()
         self.normalized_labels = [
-            torch.tensor(self.normalizer.num2tokens(label)).to(self.device)
+            torch.tensor(self.normalizer.num2tokens(label)) #.to(self.device)
             for label in tqdm(self.labels, desc=f"Generating label files")
         ]
 
@@ -70,10 +83,17 @@ class ASRDataset(torch.utils.data.Dataset):
             audio = self.augmenter.transform(audio)
 
         label = self.normalized_labels[idx]
-        return self.to_mel(audio), label
+        return self.to_mel(audio), label, self.spk_ids[idx]
 
     def to_mel(self, audio):
         mel_spec = self.mel_transform(audio)
         mel_spec = torch.log(mel_spec + 1e-6)
         mel_spec = (mel_spec - mel_spec.mean()) / (mel_spec.std() + 1e-6)
-        return mel_spec.squeeze(0).transpose(0, 1).to(self.device)
+
+        if self.spec_augment:
+            for _ in range(self.n_freq_masks):
+                mel_spec = self.freq_mask(mel_spec)
+            for _ in range(self.n_time_masks):
+                mel_spec = self.time_mask(mel_spec)
+
+        return mel_spec.squeeze(0).transpose(0, 1) #.to(self.device)
