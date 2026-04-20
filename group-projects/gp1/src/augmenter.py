@@ -1,7 +1,8 @@
 import torch
 import torchaudio
 import random
-
+from pathlib import Path
+from typing import Optional
 
 class Augmenter:
     def __init__(
@@ -13,7 +14,12 @@ class Augmenter:
         shift_prob=0.5,
         clip_prob=0.2,
         reverb_prob=0.2,
+        noise_dir: Optional[Path] = None
     ):
+        self.noise_dir = Path(noise_dir) if noise_dir else None
+        self.noise_paths = (
+            list(self.noise_dir.rglob("*.wav")) if self.noise_dir else []
+        )
         self.sample_rate = sample_rate
 
         self.noise_prob = noise_prob
@@ -55,6 +61,11 @@ class Augmenter:
         return waveform
 
     def add_noise(self, waveform):
+        if not self.noise_paths:
+            return self._add_gaussian(waveform)
+        return self._add_real_noise(waveform)
+
+    def _add_gaussian(self, waveform):
         noise = torch.randn_like(waveform)
 
         # random SNR between 5–35 dB
@@ -67,6 +78,27 @@ class Augmenter:
         noise = noise * scale
 
         return waveform + noise
+    
+    def _add_real_noise(self, waveform):
+        noise_path = random.choice(self.noise_paths)
+        noise, sr = torchaudio.load(noise_path)
+        if noise.shape[0] > 1:
+            noise = noise.mean(dim=0, keepdim=True)
+        if sr != self.sample_rate:
+            noise = torchaudio.functional.resample(noise, sr, self.sample_rate)
+
+        T = waveform.shape[1]
+        if noise.shape[1] < T:
+            reps = T // noise.shape[1] + 1
+            noise = noise.repeat(1, reps)
+        start = random.randint(0, noise.shape[1] - T)
+        noise = noise[:, start:start + T]
+
+        snr_db = random.uniform(5, 25)
+        sig_p = waveform.pow(2).mean()
+        noise_p = noise.pow(2).mean()
+        scale = torch.sqrt(sig_p / (10 ** (snr_db / 10) * noise_p + 1e-6))
+        return waveform + noise * scale
 
     def speed_perturb(self, waveform):
         speed = random.choice([0.8, 0.9, 1.0, 1.1, 1.2])
