@@ -4,20 +4,20 @@ In this exercise you are required to implement **4 CTC decoding strategies** for
 
 The acoustic model is [`facebook/wav2vec2-base-100h`](https://huggingface.co/facebook/wav2vec2-base-100h) — a [wav2vec2](https://huggingface.co/docs/transformers/en/model_doc/wav2vec2) model trained on 100 hours of [LibriSpeech](https://www.openslr.org/12).
 
-
 ## Description
 
 You are provided with:
+
 - [`Wav2Vec2Decoder`](wav2vec2decoder.py) — a class skeleton where you implement the decoding logic. **Calling any method from `self.processor` or `self.model` is prohibited** beyond what is already implemented for obtaining the logits matrix
 - A pre-trained [3-gram KenLM language model](http://www.openslr.org/11/) trained on LibriSpeech text (`lm/3-gram.pruned.1e-7.arpa.gz`)
 - [`examples/`](examples/) — a small set of short audio clips with reference transcripts, intended **for debugging only** (use them to quickly sanity-check your decoder output before running full evaluations)
 - Evaluation test sets with ground truth transcripts:
-    - `data/librispeech_test_other/` — **In-Domain** evaluation set (LibriSpeech `test-other`, 200 samples)
-    - `data/earnings22_test/` — **Out-of-Domain** evaluation set ([Earnings22](https://huggingface.co/datasets/distil-whisper/earnings22), real-world financial earnings calls, 200 samples)
+  - `data/librispeech_test_other/` — **In-Domain** evaluation set (LibriSpeech `test-other`, 200 samples)
+  - `data/earnings22_test/` — **Out-of-Domain** evaluation set ([Earnings22](https://huggingface.co/datasets/distil-whisper/earnings22), real-world financial earnings calls, 200 samples)
 - `data/earnings22_train/corpus.txt` — a financial-domain text corpus (~5000 lines, ~100k words) extracted from Earnings22, provided as a starting point for training a KenLM language model in Task 8. You are encouraged to supplement it with additional financial text data of your own to improve the LM quality.
 
-
 **Acoustic model vocabulary:**
+
 ```python
 {0: '<pad>', 1: '<s>', 2: '</s>', 3: '<unk>', 4: '|', 5: 'E', 6: 'T', 7: 'A', 8: 'O', 9: 'N', 10: 'I', 11: 'H', 12: 'S', 13: 'R', 14: 'D', 15: 'L', 16: 'U', 17: 'M', 18: 'W', 19: 'C', 20: 'F', 21: 'G', 22: 'Y', 23: 'P', 24: 'B', 25: 'V', 26: 'K', 27: "'", 28: 'X', 29: 'J', 30: 'Q', 31: 'Z'}
 ```
@@ -27,7 +27,6 @@ You are provided with:
 - `<s>`, `</s>`, `<unk>` — **not used** by this model
 
 All ground truth transcripts are **lowercase** with numbers written as words (e.g. "two thousand and twenty two"). Your decoder output must be lowercased before computing metrics. Use [CER](https://lightning.ai/docs/torchmetrics/stable/text/char_error_rate.html) and [WER](https://en.wikipedia.org/wiki/Word_error_rate) as metrics throughout (via the [jiwer](https://jitsi.github.io/jiwer/) package).
-
 
 ## Installation
 
@@ -45,7 +44,6 @@ Then install all Python dependencies:
 pip install https://github.com/kpu/kenlm/archive/master.zip
 pip install -r requirements.txt
 ```
-
 
 ## Tasks
 
@@ -68,6 +66,7 @@ Vary `beam_width` (e.g. 1, 3, 10, 50) and observe quality vs. compute trade-off,
 **Task 3.** Implement **temperature scaling** for acoustic model outputs.
 
 The `temperature` parameter is already wired into `Wav2Vec2Decoder.__init__`. Inside `decode()`:
+
 ```python
 logits = logits / self.temperature   # already implemented — do NOT modify
 log_probs = torch.log_softmax(logits, dim=-1)
@@ -80,7 +79,6 @@ Run a sweep over `T ∈ {0.5, 0.8, 1.0, 1.2, 1.5, 2.0}` on `data/librispeech_tes
 Explain in your report what effect does temperature have on greedy decoding?
 
 > The interaction between temperature and LM fusion is studied in Task 7 on out-of-domain data, where the effect is much more pronounced.
-
 
 ### Part 2 — Language Model Integration
 
@@ -121,6 +119,7 @@ RS:   the committee met on thursday         ✓ unchanged
 ```
 
 In your report, look for patterns and answer:
+
 - What kinds of errors does the LM tend to fix? (e.g. real-word confusions, rare words, sentence endings)
 - What kinds of errors does it fail to fix or make worse? (e.g. acoustically similar but domain-mismatched words)
 - Are there cases where shallow fusion and rescoring disagree? What does that reveal about the two methods?
@@ -145,10 +144,12 @@ Discuss the gap between in-domain and out-of-domain performance. Why does the Li
 **Task 7b.** Run a temperature sweep on `data/earnings22_test/` using your best shallow-fusion configuration from Task 4.
 
 Sweep `T ∈ {0.5, 1.0, 1.5, 2.0}` and **plot WER vs T** for:
+
 - Greedy decoding (reference: still flat — confirm this)
 - Beam search with LM shallow fusion
 
 Compare the resulting plot with the flat greedy curve from Task 3 (LibriSpeech). In your report, answer:
+
 - Does higher temperature help or hurt LM fusion on out-of-domain speech, and why?
 - On LibriSpeech the acoustic model is well-calibrated, so T > 1 degrades it. Is the same true for Earnings22? *(Hint: the acoustic model was never trained on financial speech — its confidence may be unreliable even at T = 1.)*
 
@@ -189,14 +190,13 @@ The resulting `lm/financial-3gram.arpa.gz` can be loaded by `Wav2Vec2Decoder` vi
 **Task 9.** Apply your two best decoding methods using **both available LMs** (LibriSpeech 3-gram and your financial-domain LM) on both test sets.
 
 Report all results in a table and add a bar chart comparing WER/CER per domain per LM. In your report, answer:
+
 - Which LM works best in-domain? Out-of-domain?
 - Does domain-matched LM help more than a larger general LM?
-
 
 ## Extra
 
 Any other LM can be used for hypotheses rescoring (e.g. BERT-based neural LMs). Include your observations in the report if you explore this direction.
-
 
 ## Notes
 
@@ -204,8 +204,8 @@ Any other LM can be used for hypotheses rescoring (e.g. BERT-based neural LMs). 
 - Use Python's `heapq` module for storing most likely hypotheses during beam search
 - Scores in beam search with LM: `score = log_p_acoustic + alpha * log_p_lm + beta * num_words`
 
-
 ## Resources
+
 - [DLA course CTC decoding lecture slides](https://docs.google.com/presentation/d/1cBXdNIbowwYNp42WhJmd1Pp85oeslOrKNmGyZa5HKBQ/edit?usp=sharing)
 - [HuggingFace wav2vec2 tutorial with n-gram LMs](https://huggingface.co/blog/wav2vec2-with-ngram)
 - [KenLM training tutorial](https://github.com/kpu/kenlm)

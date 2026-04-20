@@ -9,3 +9,6 @@ soundfile
 librosa
 transformers
 torch
+seaborn
+fastparquet
+tqdm
