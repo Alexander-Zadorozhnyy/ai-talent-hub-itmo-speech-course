@@ -2,7 +2,7 @@ from pathlib import Path
 import torch
 import torchaudio
 from src.normalizers.unspittable_normalizer import UnspittableNormalizer
-from src.models.simple_cnn import ASRModel
+from src.models.conformer import ASRModel
 from src.metrics import ctc_decode
 
 class ASRInference:

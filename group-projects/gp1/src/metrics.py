@@ -22,11 +22,14 @@ def harmonic_cer(in_domain: float, out_of_domain: float) -> float:
         return float("nan")
     return 2 * in_domain * out_of_domain / (in_domain + out_of_domain)
 
-def decode_batch(preds, labels, label_lengths, normalizer):
-    out = [] 
-    offset = 0 
+def decode_batch(preds, labels, label_lengths, normalizer, input_lengths=None):
+    out = []
+    offset = 0
     for i in range(len(label_lengths)):
-        pred_tokens = ctc_decode(preds[i].cpu().numpy())
+        pred_i = preds[i]
+        if input_lengths is not None:
+            pred_i = pred_i[: int(input_lengths[i])]
+        pred_tokens = ctc_decode(pred_i.cpu().numpy())
         pred_text = normalizer.tokens2num(pred_tokens)
 
         length = int(label_lengths[i])
@@ -57,14 +60,18 @@ def evaluate_by_speaker(
     with torch.no_grad():
         for x, texts, lengths, t_lengths, _ in dataloader:
             x = x.to(device)
+            lengths_dev = lengths.to(device)
 
-            logits = model(x)
+            logits = model(x, lengths_dev)
             preds = torch.argmax(logits, dim=-1)
+
+            T_out = logits.size(1)
+            out_lengths = (((lengths + 1) // 2 + 1) // 2).clamp(max=T_out)
 
             offset = 0
 
             for i in range(len(t_lengths)):
-                pred_tokens = preds[i].cpu().numpy()
+                pred_tokens = preds[i, : out_lengths[i]].cpu().numpy()
                 pred_tokens = ctc_decode(pred_tokens)
                 pred_text = normalizer.tokens2num(pred_tokens)
 

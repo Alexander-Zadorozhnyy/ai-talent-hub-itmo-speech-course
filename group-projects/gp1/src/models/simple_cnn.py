@@ -24,7 +24,7 @@ class ASRModel(nn.Module):
 
         self.fc = nn.Linear(self.hidden_size * 2, vocab_size)
 
-    def forward(self, x):
+    def forward(self, x, lengths=None):
         # x: (B, T)
         x = x.unsqueeze(1)  # (B, 1, T)
 
