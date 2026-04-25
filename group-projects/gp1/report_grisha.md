@@ -40,7 +40,7 @@ $$
 CNN + BiLSTM-энкодер (~4.8 М параметров) с CTC-лоссом.
 Результат: **17.24 %** гармонического CER (inD 16.7 %, ooD 17.8 %, train ~0.9 % — слабое переобучение)
 
-**см. подробнее отчет Александра**
+**см. подробнее отчет [Александра](report_aleksandr.md)**
 
 ## 4. Сводка по итерациям
 
@@ -152,6 +152,7 @@ group-projects/gp1/
 ├── pipeline.ipynb              — обучающий пайплайн (основной)
 ├── kaggle_submit.ipynb         — локальная генерация submission.csv
 ├── report_grisha.md            — данный отчёт
+├── report_aleksandr.md         — отчёт Александра
 └── src/
     ├── augmenter.py            — аугментация (speed, gain, shift, clip, reverb, real-noise)
     ├── dataset.py              — ASRDataset + SpecAugment + collate
